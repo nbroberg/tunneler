@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require "rubygems"
+require "tunneler"
+
+tunneler_cli = Tunneler::CommandLine.new
+tunneler_cli.run
