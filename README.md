@@ -35,7 +35,7 @@ Example Gem Usage
 require "tunneler"
 
 # Create SSH tunnel
-tunnel = SshTunnel.new(bastion_user, bastion_host, {:keys => [bastion_key]})
+tunnel = Tunneler::SshTunnel.new(bastion_user, bastion_host, {:keys => [bastion_key]})
 
 # Establish remote connection
 destination_host_connection = tunnel.remote(destination_user, destination_host, {:keys => [destination_key]})
