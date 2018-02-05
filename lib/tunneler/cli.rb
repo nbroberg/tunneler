@@ -1,3 +1,4 @@
+require 'pathname'
 module Tunneler
   class CommandLine
 
@@ -45,7 +46,7 @@ module Tunneler
       destination_key_filename = Pathname.new(@destination_key).basename
       commands = [
         "scp -i #{@bastion_key} #{@destination_key} #{@bastion_user}@#{@bastion_host}:",
-        "ssh -i #{@bastion_key} #{@strict_host_checking_options} -A -t -l #{@bastion_user} #{@bastion_host} -L #{DEFAULT_LOCAL_TUNNEL_PORT}:localhost:#{DEFAULT_LOCAL_TUNNEL_PORT} ssh #{@strict_host_checking_options} -A -t -i /home/#{@bastion_user}/#{destination_key_filename} -l #{@destination_user} #{@destination_host} -L #{DEFAULT_LOCAL_TUNNEL_PORT}:localhost:#{DEFAULT_LOCAL_TUNNEL_PORT}",
+        "ssh -i #{@bastion_key} #{@strict_host_checking_options} -A -t -l #{@bastion_user} #{@bastion_host} -L #{DEFAULT_LOCAL_TUNNEL_PORT}:localhost:#{DEFAULT_LOCAL_TUNNEL_PORT} ssh #{@strict_host_checking_options} -A -t -i /home/#{@bastion_user}/#{destination_key_filename} -l #{@destination_user} #{@destination_host} -L #{DEFAULT_LOCAL_TUNNEL_PORT}:localhost:#{DEFAULT_LOCAL_TUNNEL_PORT}"
       ]
       print "Opening ssh connection to '#{@destination_host}' via '#{@bastion_host}'"
       open_terminal(commands.join(" ; "))
@@ -59,7 +60,21 @@ module Tunneler
       when /darwin|mac os/
         terminal = ENV['TERM_PROGRAM']
         if terminal =~ /iTerm/
-          local_command = "osascript -e 'tell application \"System Events\" to keystroke \"t\" using command down' -e 'tell application \"iTerm\" to tell session -1 of current terminal to write text \"#{command}\"'"
+          local_command = p %{
+            export TEMPPATH=$PWD
+            OSASCRIPT << EOF
+            tell application "iTerm"
+                tell current window
+                    create tab with default profile
+                end tell
+                tell current session of current window
+                    select
+                    write text "cd $TEMPPATH"
+                    write text "#{command}"
+                end tell
+            end tell
+            EOF
+          }
         elsif terminal =~ /Terminal/
           local_command = "osascript -e 'tell application \"Terminal\" to activate' -e 'tell application \"System Events\" to tell process \"Terminal\" to keystroke \"t\" using command down' -e 'tell application \"Terminal\" to do script \"#{command}\" in selected tab of the front window'"
         else
@@ -96,7 +111,7 @@ module Tunneler
     def self.help
       "Tunneler CLI - ssh or scp through bastion host tunnel\n\n" +
       "Available subcommands: #{self.sub_commands.join(', ')}\n\n" +
-      "Command syntax: tunneler <parameters> <subcommand>\n" + 
+      "Command syntax: tunneler <parameters> <subcommand>\n" +
       "Examples:       tunneler -b 120.1.2.3 -d 121.2.3.4 ssh\n" +
       "                tunneler -b 120.1.2.3 -d 121.2.3.4 scp local_file destination_file\n" +
       "                tunneler -b 120.1.2.3 -d 121.2.3.4 execute whoami\n"
