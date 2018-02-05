@@ -43,7 +43,7 @@ destination_host_connection = tunnel.remote(destination_user, destination_host, 
 # Upload file to destination host via tunnel
 destination_host_connection.scp(local_file_path, destination_file_path)
 
-# Execute common on destination host via tunnel
+# Execute command on destination host via tunnel
 response = destination_host_connection.ssh(command)
 ```
 
